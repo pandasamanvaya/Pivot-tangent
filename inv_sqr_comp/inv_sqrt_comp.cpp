@@ -97,6 +97,13 @@ public:
 
 	}
 
+	double getBounds(int i=1)
+	{
+		if(i == 1)
+			return k1;
+		return k2;
+	}
+
 	void reEncrypt(Ciphertext& ct)
 	{
 		Plaintext temp;
@@ -504,7 +511,7 @@ int main()
     Ciphertext x, res;
     encryptor.encrypt(plain, x);
 
-    vector<double> y1(slot_count), y2(slot_count);
+    vector<double> y(slot_count), y1(slot_count), y2(slot_count), l(slot_count);
     res = inv_sqrt.linearReg(x, 15, 5);
     decryptor.decrypt(res, plain);
     encoder.decode(plain, y2);
@@ -513,17 +520,30 @@ int main()
     decryptor.decrypt(res, plain);
     encoder.decode(plain, y1);
 
+	res = inv_sqrt.pivotTangentInitGuess(x);
+    decryptor.decrypt(res, plain);
+    encoder.decode(plain, l);
 
     double err1 = 0, err2 = 0;
     for(int i=0; i < slot_count; i++){
     	// cout << c[i] << " " << y1[i] << " " << y2[i] << " " << pow(c[i], -0.5) << "\n";
+    	y[i] = pow(c[i], -0.5);
     	err1 += abs(pow(c[i], -0.5)-y1[i]);
     	err2 += abs(pow(c[i], -0.5)-y2[i]);
     }
+    double k1 = inv_sqrt.getBounds(1), k2 = inv_sqrt.getBounds(2);
+
     cout << "Pivot-Tangent Method error = " << err1/slot_count << "\n";
     cout << "Linear Regression Method error = " << err2/slot_count << "\n";
     // cout << y1[0] << " " << y1[slot_count-1] << " " << y2[0] << " " << y2[slot_count-1] << "\n";
 
- 	// plt::plot(c, y1);
- 	// plt::show();   
+ 	plt::named_plot("Original", c, y, "go");
+ 	plt::named_plot("Predicted", c, y1);
+ 	plt::named_plot("Init Guess", c, l);
+ 	plt::plot(c, [&](double d){return k1*pow(d, -0.5);}, "r--");
+ 	plt::plot(c, [&](double d){return k2*pow(d, -0.5);}, "r--");
+ 	plt::xlim(-0.5, 8.0);
+ 	plt::ylim(-0.5, 8.0);
+ 	plt::legend();
+ 	plt::show();   
 }

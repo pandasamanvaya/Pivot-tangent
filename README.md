@@ -6,3 +6,7 @@ cmake .
 make
 ./comp
 ```
+
+Libraries required for running `inv_sqrt_comp.cpp`:-
+- [SEAL](https://github.com/microsoft/SEAL)
+- Numpy(For plotting)
